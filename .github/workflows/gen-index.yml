@@ -1,0 +1,40 @@
+name: Auto-generate index.html
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  generate-index:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Generate index.html with pure shell
+        run: |
+          echo '<!DOCTYPE html>' > index.html
+          echo '<html><head><meta charset="UTF-8"><title>下载中心</title></head><body>' >> index.html
+          echo '<h1>📦 常用包下载列表</h1><ul>' >> index.html
+
+          for file in $(find packages -type f | sort); do
+            fname=$(basename "$file")
+            echo "<li><a href=\"$file\">$fname</a></li>" >> index.html
+          done
+
+          echo '</ul></body></html>' >> index.html
+
+      - name: Commit and push index.html
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet; then
+            echo "✅ No changes to commit"
+          else
+            git add index.html
+            git commit -m "🤖 Auto update index.html"
+            git push
+          fi

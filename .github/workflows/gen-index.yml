@@ -5,6 +5,9 @@ on:
     branches:
       - main
 
+permissions:
+  contents: write  # ✅ 允许写入权限
+
 jobs:
   generate-index:
     runs-on: ubuntu-latest
@@ -13,7 +16,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Generate index.html with pure shell
+      - name: Generate index.html
         run: |
           echo '<!DOCTYPE html>' > index.html
           echo '<html><head><meta charset="UTF-8"><title>下载中心</title></head><body>' >> index.html
@@ -26,15 +29,9 @@ jobs:
 
           echo '</ul></body></html>' >> index.html
 
-      - name: Commit and push index.html
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          if git diff --quiet; then
-            echo "✅ No changes to commit"
-          else
-            git add index.html
-            git commit -m "🤖 Auto update index.html"
-            git push
-          fi
+      - name: Commit and push
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 🤖 Auto update index.html
+          file_pattern: index.html
+          branch: main
